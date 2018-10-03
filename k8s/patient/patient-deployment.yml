@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: patient
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: patient
+      version: "1.0"
+  template:
+    metadata:
+      labels:
+        app: patient
+        version: "1.0"
+    spec:
+      containers:
+      - name: patient
+        image: vitorbertazoli/patient:latest
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod
+        - name: JAVA_OPTS
+          value: " -Xmx256m -Xms256m"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
+        ports:
+        - name: http
+          containerPort: 8083
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8083
+          initialDelaySeconds: 90
+          periodSeconds: 15
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8083
+          initialDelaySeconds: 120
